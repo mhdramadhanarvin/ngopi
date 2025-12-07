@@ -1,0 +1,5 @@
+[site]
+bucket = "./build" # <-- Add your build directory name here.
+name = "ngopi"
+main = "build/client/index.html"
+route = "https://ngopi.mdhn.my.id/*"
