@@ -23,9 +23,6 @@ importers:
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.3.8
-      '@moonrepo/cli':
-        specifier: ^2.3.5
-        version: 2.3.5
       npm-check-updates:
         specifier: 'catalog:'
         version: 19.1.2
@@ -1109,45 +1106,6 @@ packages:
 
   '@mjackson/node-fetch-server@0.2.0':
     resolution: {integrity: sha512-EMlH1e30yzmTpGLQjlFmaDAjyOeZhng1/XCd7DExR8PNAnG/G1tyruZxEoUe11ClnwGhGrtsdnyyUx1frSzjng==}
-
-  '@moonrepo/cli@2.3.5':
-    resolution: {integrity: sha512-m5f4nN7E9GWWuHrbNnNU8eZXvEXaL0modnHWgq5TU4QH/omDte0OcR5GwQgYRKf9PWLi113chQZSzZh/UZ9O8A==}
-    hasBin: true
-
-  '@moonrepo/core-linux-arm64-gnu@2.3.5':
-    resolution: {integrity: sha512-IRyZRYtyHhf5TRiCB9ykAew1KCdeNsGvUTuynQe4slUs4IHw0peWb/D9EGB7CYyXXmf1LGtsMk5QFu7u0MS45Q==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@moonrepo/core-linux-arm64-musl@2.3.5':
-    resolution: {integrity: sha512-lPiqdkm3OFq7CZLEzjNRtrJwI6sWrY7DI9g2cFJe6PVlNlOCuiR/niLqs4/JH3LAIt0Gr569RVtSjci+30pAcg==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@moonrepo/core-linux-x64-gnu@2.3.5':
-    resolution: {integrity: sha512-ZldlS+IbVQ0+uGSdiLXpQjdDFpcKYJqtDi/V0I5hFQQAdhR/zU/A87GkHp825ll1+4s4k0NX14ytB7jfH7DWKQ==}
-    cpu: [x64]
-    os: [linux]
-
-  '@moonrepo/core-linux-x64-musl@2.3.5':
-    resolution: {integrity: sha512-tPYaCqd3S+9ih5v1KVhXaU4mvhpCcqJSeZAYM/gWdPB+vUvhx/dhH8zI18p/i0fc1TKDQ9CvJ8tmXK0Kn1V/tg==}
-    cpu: [x64]
-    os: [linux]
-
-  '@moonrepo/core-macos-arm64@2.3.5':
-    resolution: {integrity: sha512-Rz8YPG6yAw0mpGSCr4jvwPi6/cjkQd5wX5j1JxE/yMFHuFrzieqRwHmKbS1EU0nquJWaVJs2umFZ+aaX2qXQPQ==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@moonrepo/core-macos-x64@2.3.5':
-    resolution: {integrity: sha512-rNCoXfe0xiOnjnQAVsq/OwbzqMCshnYq5ANKd+MwGQw8qPlLsVY0/TGW3DRUathTX+aIh9qaIoZqkquq41TRkg==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@moonrepo/core-windows-x64-msvc@2.3.5':
-    resolution: {integrity: sha512-N+JwGBBSdSD5iEoL2+Z5rGNOlq20xqDkaqykavihgi9PlBuYpVy98mS5JT6C1LAj69G8N33UY3dsuJnYY9Aqzw==}
-    cpu: [x64]
-    os: [win32]
 
   '@nanostores/persistent@1.2.0':
     resolution: {integrity: sha512-kf5WOLpVI9Pk+AwXHIax4in3pesNe8299BEGQ2H8kgI05SZw7KKWCDv7bt2FOlND8E5y7rO5PRW34q0UCAl/DA==}
@@ -3235,7 +3193,6 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globrex@0.1.2:
@@ -3951,7 +3908,6 @@ packages:
   recharts@2.15.4:
     resolution: {integrity: sha512-UT/q6fwS3c1dHbXv2uFgYJ9BMFHu3fwnd7AYZaEQhXuYQ4hgsxLvsUXzGdKeZrW5xopzDCvuA2N41WJ88I7zIw==}
     engines: {node: '>=14'}
-    deprecated: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -5231,39 +5187,6 @@ snapshots:
   '@microsoft/tsdoc@0.16.0': {}
 
   '@mjackson/node-fetch-server@0.2.0': {}
-
-  '@moonrepo/cli@2.3.5':
-    dependencies:
-      detect-libc: 2.1.2
-    optionalDependencies:
-      '@moonrepo/core-linux-arm64-gnu': 2.3.5
-      '@moonrepo/core-linux-arm64-musl': 2.3.5
-      '@moonrepo/core-linux-x64-gnu': 2.3.5
-      '@moonrepo/core-linux-x64-musl': 2.3.5
-      '@moonrepo/core-macos-arm64': 2.3.5
-      '@moonrepo/core-macos-x64': 2.3.5
-      '@moonrepo/core-windows-x64-msvc': 2.3.5
-
-  '@moonrepo/core-linux-arm64-gnu@2.3.5':
-    optional: true
-
-  '@moonrepo/core-linux-arm64-musl@2.3.5':
-    optional: true
-
-  '@moonrepo/core-linux-x64-gnu@2.3.5':
-    optional: true
-
-  '@moonrepo/core-linux-x64-musl@2.3.5':
-    optional: true
-
-  '@moonrepo/core-macos-arm64@2.3.5':
-    optional: true
-
-  '@moonrepo/core-macos-x64@2.3.5':
-    optional: true
-
-  '@moonrepo/core-windows-x64-msvc@2.3.5':
-    optional: true
 
   '@nanostores/persistent@1.2.0(nanostores@1.1.0)':
     dependencies:
