@@ -18,7 +18,8 @@
         "cleanup:apps": "pnpm run -r --stream --color cleanup",
         "cleanup:store": "pnpm store prune --force",
         "typecheck": "moon :typecheck",
-        "build": "moon :build"
+        "build": "moon :build",
+        "deploy-wrangler": "npx wrangler deploy"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",

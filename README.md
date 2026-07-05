@@ -6,8 +6,8 @@ Precision coffee brewing calculator for V60 + Japanese/Iced coffee methods. Real
 
 ```bash
 pnpm install
-moon run web:dev      # Dev server @ http://localhost:5173
-moon run web:build    # Production build
+moon run web:dev      # Dev server @ http://localhost:3000
+moon run web:build    # Production build → apps/web/build/client
 ```
 
 ## Stack
@@ -17,6 +17,7 @@ moon run web:build    # Production build
 - **Tooling**: TypeScript 5.8, Biome 2.2.5 (lint/format), Moon orchestration
 - **Testing**: Vitest (unit), Playwright (e2e)
 - **Docs**: Storybook 8.6 (shared-ui components)
+- **Deployment**: Cloudflare Workers (static assets, custom domain via `wrangler.jsonc`)
 - **Backend Services**: Docker Compose (PostgreSQL, Redis, ClickHouse, Mailpit, Minio, Nginx)
 
 ## Features
@@ -102,6 +103,41 @@ pnpm run cleanup:cache    # Purge Moon cache
 | `packages/shared-ui/src/stores.ts` | Global state (Zustand) |
 | `.moon/workspace.yml` | Task orchestration |
 | `biome.json` | Linter + formatter config |
+| `wrangler.jsonc` | Cloudflare Workers deployment config |
+
+## Deployment
+
+The app deploys as a **Cloudflare Workers static site** with a custom domain (`ngopi.mdhn.my.id`).
+
+### Deploy Commands
+
+```bash
+pnpm run deploy-wrangler   # Build + deploy (wrangler deploy)
+```
+
+### How It Works
+
+1. `moon :build` → builds React Router app → static assets into `apps/web/build/client`
+2. `wrangler deploy` → serves `apps/web/build/client` as static assets on Cloudflare Workers
+3. Custom domain (`ngopi.mdhn.my.id`) configured in `wrangler.jsonc`
+
+### Prerequisites
+
+- `wrangler` installed: `npm install -D wrangler`
+- Authenticated with Cloudflare: `wrangler login`
+- Domain `mdhn.my.id` must be managed in your Cloudflare account
+
+### First Deploy
+
+```bash
+pnpm run build && pnpm run deploy-wrangler
+```
+
+### Viewing Logs
+
+```bash
+wrangler tail
+```
 
 ## See Also
 
