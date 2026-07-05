@@ -18,7 +18,7 @@ apps/web/
 │   │   ├── home/
 │   │   │   ├── page.tsx       # Home page layout
 │   │   │   ├── welcome.tsx    # Welcome section
-│   │   │   └── brewing.tsx    # Complex brewing page (482 lines)
+│   │   │   └── brewing.tsx    # Brewing calculator (625 lines): V60 Basic + Japanese/Iced
 │   │   ├── auth/
 │   │   │   └── login/
 │   │   │       ├── page.tsx   # Login page entry
@@ -46,6 +46,36 @@ apps/web/
 | **Error handling** | `app/routes/components/errors/` | 404, 500 error boundaries |
 | **Pages** | `app/routes/{page}/page.tsx` | Route-specific content |
 | **Server actions** | `app/routes/{route}/action.ts` | Form submissions (mocked) |
+| **Brewing calculator** | `app/routes/home/brewing.tsx` | Main feature: brew modes, sliders, timer |
+
+## BREWING CALCULATOR (`brewing.tsx`)
+
+Main app feature (625 lines). Coffee brewing calculator with two modes.
+
+### Brew Modes
+- **V60 Basic** (amber theme): Classic pour-over, 4:6 method
+- **Japanese/Iced** (blue theme): Adds ice-ratio slider (20-60%); `brewingWater`/`iceAmount` calc; extra ice step in timer
+
+### State (useState)
+- `dose` (10-30g), `ratio` (12-18), `iceRatio` (20-60, Japanese only)
+- `body` (-3 to +3), `roast`, `tasteFocus`, `grind` (dropdowns)
+- `mode` (v60 | japanese), timer state (`activeStep`, countdown)
+
+### Calculations (useMemo)
+- `brewingWater = dose * ratio` (adjusted by ice ratio for Japanese)
+- 4:6 pour phases: bloom + 5 pours based on `brewingWater`
+- `iceAmount` (ml) for Japanese mode
+
+### Timer (useEffect + useRef)
+- Per-step countdown, auto-advance on completion
+- Active step: pulse animation highlight
+- Ice step appended to `allSteps` for Japanese mode
+
+### Layout
+- Grid: `grid-cols-1 lg:grid-cols-4` (responsive)
+- Left col: Brew method toggle → dose → ratio → roast → taste focus → grind → ice ratio (Japanese) → body slider
+- Middle col (span-2): Start button → brewing steps + timer → summary card
+- Right col: Predicted Profile (sticky `top-4`)
 
 ## ROUTING PATTERN
 

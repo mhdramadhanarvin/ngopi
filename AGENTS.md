@@ -37,6 +37,7 @@ pnpm monorepo (myorg) orchestrated by Moon. React Router 7 web app + shadcn/ui c
 | **Add app route** | `apps/web/app/routes/` | Uncomment login in routes.ts first (currently commented) |
 | **Style/theme** | `packages/shared-ui/src/theme.tsx` | Tailwind Variants (TV) + tailwindcss-motion |
 | **Authentication** | `apps/web/app/routes/auth/login/` | form.tsx (UI) + action.ts (handler, currently mocked) |
+| **Brewing calculator** | `apps/web/app/routes/home/brewing.tsx` | V60 Basic + Japanese/Iced modes; timer, sliders, 4:6 pour calc |
 | **Global state** | `packages/shared-ui/src/stores.ts` | Central store (Zustand or similar) |
 | **Build config** | `.moon/workspace.yml` + `apps/web/vite.config.ts` | Moon orchestrates; Vite handles builds |
 | **Format/lint** | Root `biome.json` | Biome 2.2.5 with custom a11y/security/style rules |
@@ -98,6 +99,7 @@ pnpm run cleanup:cache # Remove Moon cache
 
 - **Login route commented**: `apps/web/app/routes.ts` has login route commented out—uncomment to enable.
 - **Auth mocked**: `loginAction` (auth/login/action.ts) returns mock success; integrate real auth via API.
+- **Brewing calculator**: `apps/web/app/routes/home/brewing.tsx` (625 lines). V60 Basic (amber) + Japanese/Iced (blue) modes. Timer with auto-advance, 4:6 pour method, ice ratio adjustment for Japanese mode. Responsive grid (1 col mobile → 4 col desktop).
 - **Storybook**: Run `moon shared-ui:storybook` to view component library interactively.
 - **Moon caching**: Large .moon/cache directory—use `pnpm run cleanup:cache` if needed.
 - **Docker profiles**: Optional instrumentation stack available via `--profile instrumented`.

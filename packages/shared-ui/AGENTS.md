@@ -5,7 +5,7 @@
 
 ## OVERVIEW
 
-Shared UI library: 48 shadcn/ui components + 3 hooks + Tailwind Variants theme system. Exported via barrel patterns (`@repo/shared-ui/components`, `@repo/shared-ui/hooks`, `@repo/shared-ui/theme`).
+Shared UI library: 48 shadcn/ui components + 3 hooks + Tailwind Variants theme system. Exported via barrel patterns (`@repo/shared-ui/components`, `@repo/shared-ui/hooks`, `@repo/shared-ui/theme`). Used extensively in apps/web brewing calculator (Button, Card, Slider, Select, Tabs, Label).
 
 ## STRUCTURE
 
