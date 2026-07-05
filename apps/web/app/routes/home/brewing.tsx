@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 
 // Default export React component (App)
 export function Brewing() {
@@ -8,6 +8,8 @@ export function Brewing() {
   const [character, setCharacter] = useState<number>(1); // 1:ratio
   const [roast, setRoast] = useState("Medium");
   const [grind, setGrind] = useState("Medium-Fine");
+  const [brewMethod, setBrewMethod] = useState<"v60" | "japanese">("v60");
+  const [iceRatio, setIceRatio] = useState(50); // 20-60%, default 50%
 
   // User taste adjustment sliders (-3 .. +3)
   const [userSweetnessAdj, setUserSweetnessAdj] = useState(0);
@@ -22,6 +24,18 @@ export function Brewing() {
 
   // Derived calcs
   const totalWater = useMemo(() => Math.round(dose * ratio), [dose, ratio]);
+  const brewingWater = useMemo(() => {
+    if (brewMethod === "japanese") {
+      return Math.round(totalWater * (1 - iceRatio / 100));
+    }
+    return totalWater;
+  }, [brewMethod, totalWater, iceRatio]);
+  const iceAmount = useMemo(() => {
+    if (brewMethod === "japanese") {
+      return Math.round(totalWater * (iceRatio / 100));
+    }
+    return 0;
+  }, [brewMethod, totalWater, iceRatio]);
 
   // Determine number of pours for second phase (60%) based on body adjustment
   // Base secondPhasePours = 3, adjust by userBodyAdj (-3..+3) -> clamp between 1 and 5
@@ -46,8 +60,8 @@ export function Brewing() {
 
   // Pour distribution according to 4:6 rule and dynamic second phase pours
   const pours = useMemo(() => {
-    const firstPhase = totalWater * 0.4; // 40%
-    const secondPhase = totalWater * 0.6; // 60%
+    const firstPhase = brewingWater * 0.4; // 40%
+    const secondPhase = brewingWater * 0.6; // 60%
 
     // First phase: 2 pours with dynamic split
     // Second phase: dynamic pours
@@ -74,9 +88,9 @@ export function Brewing() {
     let cum = 0;
     return poursArr.map((p) => {
       cum += p.amount;
-      return { ...p, cumulative: Math.min(cum, totalWater) };
+      return { ...p, cumulative: Math.min(cum, brewingWater) };
     });
-  }, [totalWater, secondPhasePours, firstPhaseSplit]);
+  }, [brewingWater, secondPhasePours, firstPhaseSplit]);
 
   // Taste estimator
   // Returns values 0..5 for acidity, sweetness, body
@@ -184,223 +198,249 @@ export function Brewing() {
 
   // UI
   return (
-    <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left: Inputs */}
-        <div className="col-span-1 md:col-span-1 space-y-4">
-          <h1 className="text-2xl font-semibold">Manual Brew Assistant</h1>
-          <p className="text-sm text-gray-500">V60 — Hario 4:6 Method (adjustable)</p>
-
-          <div className="space-y-2 mt-4">
-            <label className="text-sm font-medium">Coffee Dose (g)</label>
-            <input
-              type="range"
-              min={10}
-              max={30}
-              value={dose}
-              onChange={(e) => setDose(Number(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <span>10g</span>
-              <span>{dose} g</span>
-              <span>30g</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Ratio (1 : x)</label>
-            <input
-              type="range"
-              min={12}
-              max={18}
-              step={0.5}
-              value={ratio}
-              onChange={(e) => setRatio(Number(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <span>12</span>
-              <span>1 : {ratio}</span>
-              <span>18</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Roast Level</label>
-            <select
-              value={roast}
-              onChange={(e) => setRoast(e.target.value)}
-              className="w-full border rounded p-2"
-            >
-              <option>Light</option>
-              <option>Medium</option>
-              <option>Dark</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">After Taste</label>
-            <select
-              value={character}
-              onChange={(e) => setCharacter(Number(e.target.value))}
-              className="w-full border rounded p-2"
-            >
-              <option value={1}>Default Beans Note</option>
-              <option value={2}>Sweetness</option>
-              <option value={3}>Acidity</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Grind</label>
-            <select
-              value={grind}
-              onChange={(e) => setGrind(e.target.value)}
-              className="w-full border rounded p-2"
-            >
-              <option>Fine</option>
-              <option>Medium-Fine</option>
-              <option>Medium</option>
-              <option>Coarse</option>
-            </select>
-          </div>
-
-          <div className="mt-4">
-            <button
-              onClick={() => setIsBrewing((b) => !b)}
-              className="w-full bg-amber-500 text-white rounded py-2 font-medium"
-            >
-              {isBrewing ? "Stop Brewing" : "Start Brewing Timer"}
-            </button>
-          </div>
-
-          <div className="mt-3 text-xs text-gray-500">
-            <strong>Note:</strong> Suggested timings and amounts are approximate. Adjust to taste
-            and gear.
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-6 sm:px-6">
+      <div className="w-full max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Coffee Brewing Calculator</h1>
+          <p className="text-sm sm:text-base text-slate-600">V60 Hario 4:6 Method — Adjustable for your taste</p>
         </div>
 
-        {/* Middle: Steps & Summary */}
-        <div className="col-span-1 md:col-span-1 space-y-4">
-          <SummaryCard
-            dose={dose}
-            ratio={ratio}
-            totalWater={totalWater}
-            grind={grind}
-            roast={roast}
-          />
+        {/* Main Grid: responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Left: Inputs (1 col on mobile, 1 col on lg) */}
+          <div className="lg:col-span-1 space-y-4 sm:space-y-5">
+            {/* Brew Method Toggle - Featured */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5 border-2 border-slate-200 hover:border-slate-300 transition">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-3">Brewing Method</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setBrewMethod("v60")}
+                  className={`flex-1 py-3 px-3 rounded-md font-semibold text-sm transition ${
+                    brewMethod === "v60"
+                      ? "bg-amber-500 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  V60 Basic
+                </button>
+                <button
+                  onClick={() => setBrewMethod("japanese")}
+                  className={`flex-1 py-3 px-3 rounded-md font-semibold text-sm transition ${
+                    brewMethod === "japanese"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  Iced
+                </button>
+              </div>
+            </div>
 
-          <div className="bg-gray-50 p-3 rounded">
-            <h3 className="font-semibold mb-2">Pour Steps (4:6 Hario)</h3>
-            <ol className="list-decimal ml-5 text-sm space-y-1">
-              {pours.map((p, idx) => (
-                <li key={idx} className="flex justify-between">
-                  <span>
-                    Phase {p.phase} — Pour {p.pourNumber}
-                  </span>
-                  <span>
-                    {p.amount} ml (cum {p.cumulative} ml)
-                  </span>
-                </li>
-              ))}
-            </ol>
+            {/* Coffee Dose Card */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-3">Coffee Dose</label>
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="range"
+                  min={10}
+                  max={30}
+                  value={dose}
+                  onChange={(e) => setDose(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <span className="text-2xl font-bold text-amber-600 w-12 text-right">{dose}g</span>
+              </div>
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
+                <span>10g</span>
+                <span>30g</span>
+              </div>
+            </div>
 
-            <div className="mt-3">
-              <h4 className="font-medium">Timer</h4>
-              <div className="text-sm text-gray-700 mt-2">
-                {isBrewing ? (
-                  <div>
-                    <div>
-                      Step: {currentStepIndex + 1} / {pourSuggestedTimes.length}
+            {/* Ratio Card */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-3">Coffee-to-Water Ratio</label>
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="range"
+                  min={12}
+                  max={18}
+                  step={0.5}
+                  value={ratio}
+                  onChange={(e) => setRatio(Number(e.target.value))}
+                  className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <span className="text-2xl font-bold text-blue-600 w-16 text-right">1:{ratio}</span>
+              </div>
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
+                <span>1:12</span>
+                <span>1:18</span>
+              </div>
+            </div>
+
+            {/* Roast Level */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-2">Roast Level</label>
+              <select
+                value={roast}
+                onChange={(e) => setRoast(e.target.value)}
+                className="w-full border-2 border-slate-200 rounded-md p-2 sm:p-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-amber-500 transition"
+              >
+                <option>Light</option>
+                <option>Medium</option>
+                <option>Dark</option>
+              </select>
+            </div>
+
+            {/* After Taste */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-2">Taste Focus</label>
+              <select
+                value={character}
+                onChange={(e) => setCharacter(Number(e.target.value))}
+                className="w-full border-2 border-slate-200 rounded-md p-2 sm:p-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition"
+              >
+                <option value={1}>Default Beans Note</option>
+                <option value={2}>Sweetness</option>
+                <option value={3}>Acidity</option>
+              </select>
+            </div>
+
+            {/* Grind Size */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-5">
+              <label className="block text-xs uppercase font-bold text-slate-500 mb-2">Grind Size</label>
+              <select
+                value={grind}
+                onChange={(e) => setGrind(e.target.value)}
+                className="w-full border-2 border-slate-200 rounded-md p-2 sm:p-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-slate-500 transition"
+              >
+                <option>Fine</option>
+                <option>Medium-Fine</option>
+                <option>Medium</option>
+                <option>Coarse</option>
+              </select>
+            </div>
+
+          {brewMethod === "japanese" && (
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg shadow-md p-4 sm:p-5 border-2 border-blue-200">
+              <label className="block text-xs uppercase font-bold text-blue-700 mb-3">Ice Ratio</label>
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="range"
+                  min={20}
+                  max={60}
+                  value={iceRatio}
+                  onChange={(e) => setIceRatio(Number(e.target.value))}
+                  className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <span className="text-2xl font-bold text-blue-700 w-14 text-right">{iceRatio}%</span>
+              </div>
+              <div className="flex justify-between text-xs text-blue-600 mt-2">
+                <span>20%</span>
+                <span>60%</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-blue-200 text-sm">
+                <div className="flex justify-between text-blue-700">
+                  <span className="font-medium">Ice</span>
+                  <span className="font-bold">{iceAmount} ml</span>
+                </div>
+                <div className="flex justify-between text-blue-700 mt-1">
+                  <span className="font-medium">Brewing Water</span>
+                  <span className="font-bold">{brewingWater} ml</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+            {/* Start Button */}
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-5">
+              <button
+                onClick={() => setIsBrewing((b) => !b)}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg py-3 sm:py-4 font-bold text-base sm:text-lg shadow-md hover:shadow-xl transition transform hover:scale-105"
+              >
+                {isBrewing ? "⏸ Stop Timer" : "▶ Start Brewing"}
+              </button>
+              <p className="text-xs text-slate-500 mt-3 text-center">
+                Timings are approximate. Adjust to taste and equipment.
+              </p>
+            </div>
+          </div>
+
+          {/* Middle: Summary & Pour Steps (2 cols on desktop) */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+            <SummaryCard
+              dose={dose}
+              ratio={ratio}
+              totalWater={totalWater}
+              grind={grind}
+              roast={roast}
+              brewMethod={brewMethod}
+              brewingWater={brewingWater}
+              iceAmount={iceAmount}
+            />
+
+            {/* Pour Steps */}
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Pour Steps</h3>
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">4:6 Hario</span>
+              </div>
+              <div className="space-y-2">
+                {pours.map((p, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between p-3 rounded-md transition ${
+                      currentStepIndex === idx && isBrewing
+                        ? "bg-amber-100 border-2 border-amber-400"
+                        : p.phase === 1
+                          ? "bg-amber-50"
+                          : "bg-blue-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm ${
+                          p.phase === 1 ? "bg-amber-500" : "bg-blue-600"
+                        }`}
+                      >
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-800">Phase {p.phase} · Pour {p.pourNumber}</div>
+                        <div className="text-xs text-slate-500">Cumulative: {p.cumulative} ml</div>
+                      </div>
                     </div>
-                    <div>Remaining: {formatSeconds(stepRemaining)}</div>
+                    <span className="text-lg font-bold text-slate-900">{p.amount}<span className="text-xs text-slate-500 ml-1">ml</span></span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Timer Status */}
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <h4 className="text-xs uppercase font-bold text-slate-500 mb-2">Timer</h4>
+                {isBrewing ? (
+                  <div className="bg-amber-50 rounded-md p-3">
+                    <div className="text-sm text-slate-700">Step {currentStepIndex + 1} / {pourSuggestedTimes.length}</div>
+                    <div className="text-2xl font-bold text-amber-600">{formatSeconds(stepRemaining)}</div>
                   </div>
                 ) : (
-                  <div>Not brewing — press Start to begin the guided timer.</div>
+                  <p className="text-sm text-slate-500">Press Start to begin the guided timer.</p>
                 )}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right: Taste Profile & Adjustments */}
-        <div className="col-span-1 md:col-span-1 space-y-4">
-          <TasteProfile profile={tasteProfile} />
-
-          <div className="bg-gray-50 p-4 rounded text-sm space-y-3">
-            <h4 className="font-semibold">Taste Adjustments</h4>
-
-            {/*
-            <div>
-              <label className="text-xs">Sweetness adjustment</label>
-              <input
-                type="range"
-                min={-3}
-                max={3}
-                step={1}
-                value={userSweetnessAdj}
-                onChange={(e) => setUserSweetnessAdj(Number(e.target.value))}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>-3</span>
-                <span>{userSweetnessAdj}</span>
-                <span>+3</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Sweetness mainly influenced by the first 40% pours (10% first pour, 30% second
-                pour).
+          {/* Right: Taste Profile */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="text-xl">🎯</span> Taste Profile
+              </h3>
+              <TasteProfile profile={tasteProfile} />
+              <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500">
+                <strong>Grind tip:</strong> For V60 4:6, try <em>Medium-Fine</em> ± one click.
               </div>
             </div>
-
-            <div>
-              <label className="text-xs">Acidity adjustment</label>
-              <input
-                type="range"
-                min={-3}
-                max={3}
-                step={1}
-                value={userAcidityAdj}
-                onChange={(e) => setUserAcidityAdj(Number(e.target.value))}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>-3</span>
-                <span>{userAcidityAdj}</span>
-                <span>+3</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Acidity mainly influenced by the first 40% pours (30% first pour, 10% second pour).
-              </div>
-            </div>
-            */}
-            <div>
-              <label className="text-xs">Body / Strength adjustment</label>
-              <input
-                type="range"
-                min={-3}
-                max={3}
-                step={1}
-                value={userBodyAdj}
-                onChange={(e) => setUserBodyAdj(Number(e.target.value))}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>-3</span>
-                <span>{userBodyAdj}</span>
-                <span>+3</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Higher body increases the number of pours in the 60% phase (stronger). Lower body
-                reduces pour count.
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-2 text-xs text-gray-500">
-            <strong>Grind suggestion:</strong> For V60 Hario 4:6, try <em>Medium-Fine</em> and
-            adjust ± one click.
           </div>
         </div>
       </div>
@@ -410,30 +450,55 @@ export function Brewing() {
 
 // ------------------------- Helper components -------------------------
 
-function SummaryCard({ dose, ratio, totalWater, grind, roast }) {
+function SummaryCard({ dose, ratio, totalWater, grind, roast, brewMethod, brewingWater, iceAmount }) {
   return (
-    <div className="bg-white border rounded p-4">
-      <h3 className="font-semibold">Summary</h3>
-      <div className="mt-2 text-sm text-gray-700 space-y-1">
-        <div className="flex justify-between">
-          <span>Coffee</span>
-          <span>{dose} g</span>
+    <div className="bg-white rounded-lg shadow-lg p-5 sm:p-6 border-l-4 border-amber-500">
+      <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <span>📋</span> Recipe Summary
+      </h3>
+      <div className="space-y-3">
+        {/* Coffee */}
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-slate-600">Coffee</span>
+          <span className="text-lg font-bold text-slate-900">{dose} g</span>
         </div>
-        <div className="flex justify-between">
-          <span>Ratio</span>
-          <span>1 : {ratio}</span>
+        {/* Ratio */}
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-slate-600">Ratio</span>
+          <span className="text-lg font-bold text-blue-600">1 : {ratio}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Total Water</span>
-          <span>{totalWater} ml</span>
+        {/* Water breakdown */}
+        {brewMethod === "japanese" ? (
+          <>
+            <div className="bg-blue-50 rounded-md p-3 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Ice</span>
+                <span className="text-lg font-bold text-blue-700">{iceAmount} ml</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Brewing Water</span>
+                <span className="text-lg font-bold text-blue-700">{brewingWater} ml</span>
+              </div>
+              <div className="border-t border-blue-200 pt-2 flex justify-between items-center">
+                <span className="text-xs text-blue-600">Total</span>
+                <span className="text-sm font-bold text-blue-600">{totalWater} ml</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="bg-amber-50 rounded-md p-3 flex justify-between items-center">
+            <span className="text-sm text-amber-700">Total Water</span>
+            <span className="text-lg font-bold text-amber-700">{totalWater} ml</span>
+          </div>
+        )}
+        {/* Grind & Roast */}
+        <div className="flex justify-between items-center pt-2">
+          <span className="text-sm text-slate-600">Grind</span>
+          <span className="text-sm font-semibold text-slate-800">{grind}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Grind</span>
-          <span>{grind}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Roast</span>
-          <span>{roast}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-slate-600">Roast</span>
+          <span className="text-sm font-semibold text-slate-800">{roast}</span>
         </div>
       </div>
     </div>
@@ -442,32 +507,30 @@ function SummaryCard({ dose, ratio, totalWater, grind, roast }) {
 
 function TasteProfile({ profile }) {
   const bars = [
-    { label: "Acidity", value: profile.acidity },
-    { label: "Sweetness", value: profile.sweetness },
-    { label: "Body", value: profile.body },
+    { label: "Acidity", value: profile.acidity, color: "bg-orange-400", lightBg: "bg-orange-50" },
+    { label: "Sweetness", value: profile.sweetness, color: "bg-amber-400", lightBg: "bg-amber-50" },
+    { label: "Body", value: profile.body, color: "bg-slate-600", lightBg: "bg-slate-100" },
   ];
   return (
-    <div className="bg-white border rounded p-4">
-      <h3 className="font-semibold mb-2">Taste Profile</h3>
-      <div className="space-y-3">
-        {bars.map((b) => (
-          <div key={b.label}>
-            <div className="flex justify-between text-sm mb-1">
-              <span>{b.label}</span>
-              <span>{b.value}/5</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded h-3 overflow-hidden">
-              <div
-                className="h-3 rounded"
-                style={{
-                  width: `${(b.value / 5) * 100}%`,
-                  background: `linear-gradient(90deg, #f59e0b, #ef4444)`,
-                }}
-              />
-            </div>
+    <div className="space-y-4">
+      {bars.map((b) => (
+        <div key={b.label} className="bg-slate-50 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-slate-700">{b.label}</span>
+            <span className="text-lg font-bold text-slate-900">{b.value}/5</span>
           </div>
-        ))}
-      </div>
+          <div className="flex gap-1">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className={`flex-1 h-3 rounded-full transition ${
+                  i < b.value ? b.color : "bg-slate-200"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

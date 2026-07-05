@@ -129,3 +129,11 @@ hugo.linux
 # Personal Note
 AUDIT.md
 TODO.md
+
+
+# AI Vibecoding
+**/.sisyphus/*
+**/thoughts/*
+PLAN.md
+**/.logs/*
+**/.opencode/*
