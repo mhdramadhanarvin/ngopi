@@ -17,7 +17,9 @@
         "cleanup:cache": "pnpm dlx del-cli .moon/cache --verbose",
         "cleanup:apps": "pnpm run -r --stream --color cleanup",
         "cleanup:store": "pnpm store prune --force",
-        "typecheck": "moon :typecheck"
+        "typecheck": "moon :typecheck",
+        "build": "moon :build",
+        "deploy-wrangler": "npx wrangler deploy"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
