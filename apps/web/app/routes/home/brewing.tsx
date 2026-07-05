@@ -150,51 +150,68 @@ export function Brewing() {
     return arr;
   }, [secondPhasePours]);
 
+  // Ice step for Japanese mode (step 0)
+  const hasIceStep = brewMethod === "japanese" && iceAmount > 0;
+
+  // All steps including ice step
+  const allSteps = useMemo(() => {
+    const steps = [];
+    // Ice step (only for Japanese mode)
+    if (hasIceStep) {
+      steps.push({ type: "ice" as const, label: "Add Ice", amount: iceAmount, time: 15 });
+    }
+    // Pour steps
+    pours.forEach((p, idx) => {
+      steps.push({ type: "pour" as const, ...p, time: pourSuggestedTimes[idx] || 30 });
+    });
+    return steps;
+  }, [hasIceStep, iceAmount, pours, pourSuggestedTimes]);
+
   // Timer effect
   useEffect(() => {
-    // if (!isBrewing) {
-    //   clearInterval(intervalRef.current);
-    //   intervalRef.current = null;
-    //   setCurrentStepIndex(-1);
-    //   setStepRemaining(0);
-    //   return;
-    // }
-    //
-    // // Start or resume
-    // if (currentStepIndex === -1) {
-    //   setCurrentStepIndex(0);
-    //   setStepRemaining(pourSuggestedTimes[0]);
-    // }
-    //
-    // if (!intervalRef.current) {
-    //   intervalRef.current = setInterval(() => {
-    //     setStepRemaining((s) => {
-    //       if (s <= 1) {
-    //         setCurrentStepIndex((idx) => {
-    //           const next = idx + 1;
-    //           if (next >= pourSuggestedTimes.length) {
-    //             // finished
-    //             setIsBrewing(false);
-    //             clearInterval(intervalRef.current);
-    //             intervalRef.current = null;
-    //             return -1;
-    //           }
-    //           setStepRemaining(pourSuggestedTimes[next]);
-    //           return next;
-    //         });
-    //         return 0;
-    //       }
-    //       return s - 1;
-    //     });
-    //   }, 1000);
-    // }
-    //
-    // return () => {
-    //   clearInterval(intervalRef.current);
-    //   intervalRef.current = null;
-    // };
+    if (!isBrewing) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setCurrentStepIndex(-1);
+      setStepRemaining(0);
+      return;
+    }
+
+    // Start or resume
+    if (currentStepIndex === -1) {
+      setCurrentStepIndex(0);
+      setStepRemaining(allSteps[0]?.time || 30);
+    }
+
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(() => {
+        setStepRemaining((s) => {
+          if (s <= 1) {
+            setCurrentStepIndex((idx) => {
+              const next = idx + 1;
+              if (next >= allSteps.length) {
+                // finished
+                setIsBrewing(false);
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+                return -1;
+              }
+              setStepRemaining(allSteps[next]?.time || 30);
+              return next;
+            });
+            return 0;
+          }
+          return s - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isBrewing]);
+  }, [isBrewing, allSteps.length]);
 
   // UI
   return (
@@ -351,19 +368,6 @@ export function Brewing() {
               </div>
             </div>
           )}
-
-            {/* Start Button */}
-            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-5">
-              <button
-                onClick={() => setIsBrewing((b) => !b)}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg py-3 sm:py-4 font-bold text-base sm:text-lg shadow-md hover:shadow-xl transition transform hover:scale-105"
-              >
-                {isBrewing ? "⏸ Stop Timer" : "▶ Start Brewing"}
-              </button>
-              <p className="text-xs text-slate-500 mt-3 text-center">
-                Timings are approximate. Adjust to taste and equipment.
-              </p>
-            </div>
           </div>
 
           {/* Middle: Summary & Pour Steps (2 cols on desktop) */}
@@ -379,49 +383,101 @@ export function Brewing() {
               iceAmount={iceAmount}
             />
 
-            {/* Pour Steps */}
+            {/* Brewing Steps */}
             <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-900">Pour Steps</h3>
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">4:6 Hario</span>
-              </div>
-              <div className="space-y-2">
-                {pours.map((p, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center justify-between p-3 rounded-md transition ${
-                      currentStepIndex === idx && isBrewing
-                        ? "bg-amber-100 border-2 border-amber-400"
-                        : p.phase === 1
-                          ? "bg-amber-50"
-                          : "bg-blue-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm ${
-                          p.phase === 1 ? "bg-amber-500" : "bg-blue-600"
+               <div className="flex items-center justify-between mb-4">
+                 <h3 className="text-lg font-bold text-slate-900">Brewing Steps</h3>
+                 <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">4:6 Hario</span>
+               </div>
+               
+               {/* Start/Stop Button */}
+               <button
+                 onClick={() => setIsBrewing((b) => !b)}
+                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg py-3 font-bold text-base shadow-md hover:shadow-xl transition transform hover:scale-105 mb-4"
+               >
+                 {isBrewing ? "⏸ Stop Timer" : "▶ Start Brewing"}
+               </button>
+               <p className="text-xs text-slate-500 mb-4 text-center">
+                 Timings are approximate. Adjust to taste and equipment.
+               </p>
+               
+               <div className="space-y-2">
+                {allSteps.map((step, idx) => {
+                  const isActive = currentStepIndex === idx && isBrewing;
+                  const isCompleted = isBrewing && currentStepIndex > idx;
+                  
+                  if (step.type === "ice") {
+                    return (
+                      <div
+                        key="ice"
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${
+                          isActive
+                            ? "bg-gradient-to-r from-cyan-100 to-blue-100 border-2 border-cyan-400 shadow-lg scale-[1.02]"
+                            : isCompleted
+                              ? "bg-cyan-50 border border-cyan-200 opacity-70"
+                              : "bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200"
                         }`}
                       >
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="text-sm font-semibold text-slate-800">Phase {p.phase} · Pour {p.pourNumber}</div>
-                        <div className="text-xs text-slate-500">Cumulative: {p.cumulative} ml</div>
+                        <div className="flex items-center gap-3">
+                          <span className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm shadow-md ${isActive ? "bg-gradient-to-br from-cyan-500 to-blue-500 animate-pulse" : isCompleted ? "bg-cyan-400" : "bg-gradient-to-br from-cyan-400 to-blue-500"}`}>❄️</span>
+                          <div>
+                            <div className="text-sm font-bold text-slate-800">Add Ice to Carafe</div>
+                            <div className="text-xs text-cyan-600 font-medium">Before brewing begins</div>
+                          </div>
+                        </div>
+                        <span className="text-xl font-bold text-cyan-700">{step.amount}<span className="text-xs text-cyan-500 ml-1">ml</span></span>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${
+                        isActive
+                          ? step.phase === 1
+                            ? "bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-400 shadow-lg scale-[1.02]"
+                            : "bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-400 shadow-lg scale-[1.02]"
+                          : isCompleted
+                            ? step.phase === 1
+                              ? "bg-amber-50 border border-amber-200 opacity-60"
+                              : "bg-blue-50 border border-blue-200 opacity-60"
+                            : step.phase === 1
+                              ? "bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200"
+                              : "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm shadow-md ${isActive ? (step.phase === 1 ? "bg-gradient-to-br from-amber-500 to-orange-500 animate-pulse" : "bg-gradient-to-br from-blue-500 to-indigo-500 animate-pulse") : isCompleted ? (step.phase === 1 ? "bg-amber-400" : "bg-blue-400") : (step.phase === 1 ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-gradient-to-br from-blue-500 to-indigo-500")}`}>{step.pourNumber}</span>
+                        <div>
+                          <div className="text-sm font-bold text-slate-800">Phase {step.phase} · Pour {step.pourNumber}</div>
+                          <div className="text-xs text-slate-500">Cumulative: {step.cumulative} ml</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xl font-bold text-slate-900">{step.amount}<span className="text-xs text-slate-500 ml-1">ml</span></span>
+                        {isActive && <div className="text-xs font-semibold text-amber-600 mt-1">⏱ {step.time}s</div>}
                       </div>
                     </div>
-                    <span className="text-lg font-bold text-slate-900">{p.amount}<span className="text-xs text-slate-500 ml-1">ml</span></span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Timer Status */}
               <div className="mt-4 pt-4 border-t border-slate-200">
                 <h4 className="text-xs uppercase font-bold text-slate-500 mb-2">Timer</h4>
                 {isBrewing ? (
-                  <div className="bg-amber-50 rounded-md p-3">
-                    <div className="text-sm text-slate-700">Step {currentStepIndex + 1} / {pourSuggestedTimes.length}</div>
-                    <div className="text-2xl font-bold text-amber-600">{formatSeconds(stepRemaining)}</div>
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-semibold text-slate-700">Step {currentStepIndex + 1} / {allSteps.length}</div>
+                      <div className="text-lg font-bold text-amber-600">{allSteps[currentStepIndex]?.type === "ice" ? "❄️ " : "⏱ "}{formatSeconds(stepRemaining)}</div>
+                    </div>
+                    <div className="w-full bg-amber-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all duration-1000"
+                        style={{width: `${allSteps[currentStepIndex] ? ((allSteps[currentStepIndex].time - stepRemaining) / allSteps[currentStepIndex].time) * 100 : 0}%`}}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-slate-500">Press Start to begin the guided timer.</p>
