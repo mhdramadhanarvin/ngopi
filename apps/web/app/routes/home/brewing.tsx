@@ -368,6 +368,32 @@ export function Brewing() {
               </div>
             </div>
           )}
+
+          {/* Taste Profile - Body Adjustment */}
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-5">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="text-lg">🎯</span> Body
+            </h3>
+            
+            <div className="bg-slate-100 rounded-lg p-3">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-slate-700">Adjustment</label>
+                <span className="text-sm font-bold text-slate-600">{userBodyAdj > 0 ? '+' : ''}{userBodyAdj}</span>
+              </div>
+              <input
+                type="range"
+                min={-3}
+                max={3}
+                value={userBodyAdj}
+                onChange={(e) => setUserBodyAdj(Number(e.target.value))}
+                className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-slate-600"
+              />
+              <div className="flex justify-between text-xs text-slate-600 mt-1">
+                <span>Light</span>
+                <span>Bold</span>
+              </div>
+            </div>
+          </div>
           </div>
 
           {/* Middle: Summary & Pour Steps (2 cols on desktop) */}
@@ -486,18 +512,16 @@ export function Brewing() {
             </div>
           </div>
 
-          {/* Right: Taste Profile */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="text-xl">🎯</span> Taste Profile
+          {/* Right: Predicted Taste Profile */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-5 sticky top-4">
+              <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="text-lg">📊</span> Predicted Profile
               </h3>
               <TasteProfile profile={tasteProfile} />
-              <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500">
-                <strong>Grind tip:</strong> For V60 4:6, try <em>Medium-Fine</em> ± one click.
-              </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
